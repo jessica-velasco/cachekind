@@ -7,12 +7,24 @@
 - Phase 0 contract spike completed on July 20, 2026 against Next.js 16.2.10.
 - Production build, Edge compilation, standalone tracing, page/route/fetch MISS→HIT, and tag invalidation→MISS are covered by an executable probe.
 - Phase 1 package/core scaffolding completed: typed public API, policy validation, key/TTL rules, binary codec, safe observability, disabled mode, packaging, and CI.
-- Phase 2 Redis adapter and resilience work is next.
+- Phase 2 Redis adapter and resilience completed: client-neutral transport,
+  Node Redis URL adapter, TTL-bound storage, timestamp invalidation, breaker,
+  time budgets, late-result protection, lifecycle ownership, and Redis 7.2+
+  integration coverage.
+- Phase 3 incremental handler completed: supported-kind routing, safe defaults,
+  build scoping, TTL policies, header tags, Edge no-op loading, and two-instance
+  production verification.
+- Phase 4 trust suite completed: production and two-instance verification,
+  Redis failure tests, data-integrity checks, standalone tracing assertions,
+  and Next.js/Redis/TLS CI coverage.
+- Phase 5 alpha preparation is complete; npm publication and a real
+  multi-instance deployment remain external release gates.
 
 ## Confirmed product decisions
 
 - Safe default: share `FETCH`; require explicit opt-in for `APP_PAGE` and `APP_ROUTE`.
 - Initial support floor: Next.js 16.2.
+- Initial Redis support floor: Redis 7.2.
 - Initial Redis transport: standard TCP/TLS URLs. REST-only providers are deferred.
 - Project name, npm package, and repository slug: `cachekind`.
 
@@ -45,7 +57,8 @@ The first milestone targets the singular incremental cache handler. The Cache Co
 - Runtime enable/disable with zero Redis connections when disabled.
 - A constructor/factory API; the package never reads ambient environment variables itself.
 - Managed-Redis-safe behavior: no `CONFIG` commands, no keyspace notification dependency, no eviction-policy assumption, and a TTL on every package-owned key.
-- TLS/auth/database support through a normal Redis connection URL and optional injected client.
+- TLS/auth/database support through a normal Redis connection URL, plus a
+  client-neutral transport for reusing application-owned Redis infrastructure.
 - Per-kind policy for enablement, key scope, entry TTL bounds, maximum value size, and timeout.
 - Build-scoped keys by default for pages/routes, with an explicit stable scope option.
 - Binary-safe serialization without turning Buffers into base64 JSON.
@@ -89,6 +102,29 @@ module.exports = createIncrementalCacheHandler({
   reportError,
 })
 ```
+
+Projects that already own a Redis client inject a small Cachekind transport:
+
+```js
+module.exports = createIncrementalCacheHandler({
+  redis: { transport: cacheTransport },
+  namespace: 'my-app',
+})
+```
+
+The URL mode is convenience mode: Cachekind creates, configures, reconnects,
+and closes its selected default client. An injected transport is application
+owned: Cachekind never connects, reconfigures, or closes it. Cachekind still
+enforces its own operation budgets and late-result guards, while the
+application remains responsible for the shared client's retry, offline-queue,
+socket, TLS, and reconnect behavior.
+
+The public transport boundary contains only the operations the cache needs:
+Redis server `time`, binary-safe `get`, cross-slot-safe `getMany`, TTL-bearing
+`set`, and `delete`. Server time prevents application clock skew from breaking
+timestamp ordering. The batched read must preserve key order and pipeline
+independent commands rather than requiring `MGET`, so it also works with Redis
+Cluster keys in different hash slots.
 
 Defaults should be conservative:
 
@@ -176,12 +212,32 @@ Status: **completed**. The root package has zero runtime dependencies, the publi
 
 ### Phase 2 — Redis adapter and resilience
 
-- Select the Redis client through a short measured spike; compare connection count, binary APIs, cluster behavior, package size, and standalone tracing.
+- Define and test the client-neutral Redis transport contract, including binary
+  values, Redis server time, atomic TTL-bearing writes, and cross-slot-safe
+  batched reads.
+- Select the default client used only by URL convenience mode through a short
+  measured spike; compare connection count, binary APIs, cluster behavior,
+  package size, and standalone tracing.
+- Implement the default-client transport adapter. Confirm that applications can
+  inject and reuse an externally owned transport without Cachekind connecting,
+  reconfiguring, or closing it.
 - Implement basic-command-only storage and timestamp tag invalidation.
 - Implement timeouts, circuit breaker, late-result guard, and client lifecycle.
-- Test against at least Redis 6.2 and 7.x with TLS-shaped configuration where practical.
+- Test against Redis 7.2 and a newer 7.x release with TLS-shaped configuration
+  where practical.
 
-Exit criterion: Redis loss never delays a request beyond the configured budget, recovery is automatic, and every created key has a TTL.
+Exit criterion: Redis loss never delays a request beyond the configured budget,
+recovery is automatic, every created key has a TTL, URL mode owns exactly its
+own client lifecycle, and injected mode creates no connections and leaves the
+application-owned transport open.
+
+Status: **completed**. Unit tests cover timeout budgets, breaker recovery,
+late-result isolation, TTL-bearing writes, corrupt data, and ownership. Real
+Redis integration tests run against Redis 7.2 and 7.4 in CI, verify entry and
+tag TTLs, deliberately pause Redis to verify the request budget and automatic
+recovery, and verify that URL mode reuses and closes exactly one connection.
+TLS URL parsing and client configuration are covered; an end-to-end
+certificate harness remains part of the broader trust suite.
 
 ### Phase 3 — incremental handler
 
@@ -190,6 +246,14 @@ Exit criterion: Redis loss never delays a request beyond the configured budget, 
 - Add safe defaults and explicit page-cache opt-in.
 
 Exit criterion: two Next.js instances share hits and observe tag/path invalidation; a rolling build does not read incompatible entries.
+
+Status: **completed**. Unit tests cover supported-kind routing, FETCH-only
+defaults, explicit page/route opt-in, lazy and discovered build IDs, TTL bounds,
+oversized values, null deletion, tag extraction, and rolling-build isolation.
+The production standalone verifier starts two Next.js processes against one
+Redis instance and observes shared page/route hits plus cross-instance tag and
+path invalidation. The same build keeps an Edge route to verify that Node Redis
+dependencies are excluded from the Edge runtime.
 
 ### Phase 4 — trust suite
 
@@ -201,12 +265,29 @@ Exit criterion: two Next.js instances share hits and observe tag/path invalidati
 
 Exit criterion: CI exercises the failure modes that escaped static review in the earlier experiment.
 
+Status: **completed**. The suite now covers production MISS→HIT behavior,
+cross-instance tag and path invalidation, unavailable and paused Redis budgets,
+automatic recovery, corrupt-entry cleanup, oversized-write rejection, finite
+entry and tag TTLs, rolling-build isolation, and standalone dependency tracing.
+CI tests Redis 7.2 and 7.4, the minimum and pinned-current Next.js 16.2 patches,
+and a certificate-verified `rediss://` connection. See `docs/TRUST-SUITE.md`.
+
 ### Phase 5 — documentation and first release
 
 - Five-minute quick start and managed-provider recipes.
 - Explain cache safety, personalized HTML, build scoping, CDN separation, and operational signals.
 - Add migration notes for users of popular existing handlers without disparaging them.
-- Publish a release candidate, validate it in one real multi-instance deployment, then publish `1.0.0` only after the API has survived that feedback.
+- Publish an alpha below `1.0.0`, validate it in real multi-instance
+  deployments, and advance through pre-1.0 versions while the API is still
+  allowed to change. Publish `1.0.0` only after the API has survived that
+  feedback.
+
+Status: **alpha prepared**. The repository now contains a
+five-minute quick start, managed Redis and deployment recipes, cache-safety and
+operations guidance, migration notes, release metadata for `0.1.0-alpha.0`, and
+a tag-only manual publish workflow. The npm name was available on August 18,
+2026. Publication and representative multi-instance deployment feedback remain
+required before the project advances toward a stable `1.0.0`.
 
 ### Phase 6 — extensions
 
@@ -220,7 +301,9 @@ In priority order, based on demand and measurements:
 ## Key decisions to validate early
 
 1. **Package name:** check npm and GitHub availability before we settle it.
-2. **Redis client:** do a small implementation spike rather than inherit one library's assumptions.
+2. **Default Redis client:** do a small implementation spike for URL convenience
+   mode rather than making one library's assumptions part of the cache core or
+   requiring consumers to adopt it.
 3. **Minimum Next.js version:** start at 16.2 because image and Cache Components contracts are actively changing; decide later whether a compatibility adapter for older releases is worth the maintenance.
 4. **Fallback meaning:** degraded Redis should be a miss, not an attempt to instantiate private Next.js filesystem classes.
 5. **Tag TTL:** choose a default long enough that an old cache entry can never outlive its tag invalidation marker. Enforce `tagTtl >= maximumEntryTtl` in configuration.

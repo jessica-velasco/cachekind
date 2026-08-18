@@ -18,4 +18,3 @@ if (process.env.NEXT_RUNTIME === 'edge') {
 } else {
   module.exports = require('./cache-handler-node.cjs')
 }
-

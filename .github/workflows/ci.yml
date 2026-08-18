@@ -35,3 +35,102 @@ jobs:
       - run: npm ci
       - run: npm run verify:probe
 
+  redis-integration:
+    strategy:
+      matrix:
+        redis: ["7.2-alpine", "7.4-alpine"]
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:${{ matrix.redis }}
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:redis
+        env:
+          CACHEKIND_TEST_REDIS_URL: redis://127.0.0.1:6379
+
+  next-compatibility:
+    strategy:
+      matrix:
+        next: ["16.2.0", "16.2.10"]
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7.2-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false --workspace @cachekind/contract-probe next@${{ matrix.next }}
+      - run: npm run verify:shared
+        env:
+          CACHEKIND_TEST_REDIS_URL: redis://127.0.0.1:6379
+
+  redis-tls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Create test certificates
+        run: |
+          mkdir -p "$RUNNER_TEMP/cachekind-tls"
+          openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 1 \
+            -subj "/CN=Cachekind Test CA" \
+            -keyout "$RUNNER_TEMP/cachekind-tls/ca.key" \
+            -out "$RUNNER_TEMP/cachekind-tls/ca.crt"
+          openssl req -newkey rsa:2048 -sha256 -nodes \
+            -subj "/CN=localhost" \
+            -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
+            -keyout "$RUNNER_TEMP/cachekind-tls/server.key" \
+            -out "$RUNNER_TEMP/cachekind-tls/server.csr"
+          openssl x509 -req -sha256 -days 1 \
+            -in "$RUNNER_TEMP/cachekind-tls/server.csr" \
+            -CA "$RUNNER_TEMP/cachekind-tls/ca.crt" \
+            -CAkey "$RUNNER_TEMP/cachekind-tls/ca.key" \
+            -CAcreateserial -copy_extensions copy \
+            -out "$RUNNER_TEMP/cachekind-tls/server.crt"
+          chmod 644 "$RUNNER_TEMP/cachekind-tls"/*
+      - name: Start Redis 7.2 with TLS
+        run: |
+          docker run --detach --rm --name cachekind-redis-tls \
+            --user "$(id -u):$(id -g)" \
+            --publish 6380:6380 \
+            --volume "$RUNNER_TEMP/cachekind-tls:/tls:ro" \
+            redis:7.2-alpine redis-server \
+            --port 0 \
+            --tls-port 6380 \
+            --tls-cert-file /tls/server.crt \
+            --tls-key-file /tls/server.key \
+            --tls-ca-cert-file /tls/ca.crt \
+            --tls-auth-clients no \
+            --dir /tmp
+      - run: npm run test:redis
+        env:
+          CACHEKIND_TEST_REDIS_URL: rediss://localhost:6380
+          NODE_EXTRA_CA_CERTS: ${{ runner.temp }}/cachekind-tls/ca.crt
