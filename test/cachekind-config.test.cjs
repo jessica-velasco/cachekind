@@ -34,6 +34,54 @@ test('accepts standard Redis TCP and TLS URLs', () => {
   )
 })
 
+test('accepts an application-owned Redis transport without mutating it', () => {
+  const transport = {
+    time: async () => 1,
+    get: async () => null,
+    getMany: async (keys) => keys.map(() => null),
+    set: async () => {},
+    delete: async () => {},
+  }
+
+  const resolved = resolveOptions({
+    redis: { transport },
+    namespace: 'app',
+  })
+
+  assert.equal(resolved.redis.transport, transport)
+  assert.equal(Object.isFrozen(transport), false)
+  assert.equal(Object.isFrozen(resolved.redis), true)
+})
+
+test('rejects incomplete or ambiguous Redis transports', () => {
+  assert.throws(
+    () =>
+      resolveOptions({
+        redis: { transport: { get: async () => null } },
+        namespace: 'app',
+      }),
+    /time, get, getMany, set, and delete/,
+  )
+
+  assert.throws(
+    () =>
+      resolveOptions({
+        redis: {
+          url: 'redis://cache.internal:6379',
+          transport: {
+            time: async () => 1,
+            get: async () => null,
+            getMany: async () => [],
+            set: async () => {},
+            delete: async () => {},
+          },
+        },
+        namespace: 'app',
+      }),
+    /exactly one/,
+  )
+})
+
 test('rejects unsupported connection protocols', () => {
   assert.throws(
     () =>

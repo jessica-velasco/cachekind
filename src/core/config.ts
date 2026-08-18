@@ -63,8 +63,38 @@ function validateRedis(
   redis: CachekindOptions['redis'],
 ): ResolvedCachekindOptions['redis'] {
   if (redis === false) return false
-  if (!redis || typeof redis.url !== 'string' || redis.url.length === 0) {
-    throw new TypeError('redis must be false or an object with a non-empty url')
+  if (!redis || typeof redis !== 'object') {
+    throw new TypeError('redis must be false, { url }, or { transport }')
+  }
+
+  const hasUrl = 'url' in redis
+  const hasTransport = 'transport' in redis
+  if (hasUrl === hasTransport) {
+    throw new TypeError('redis must contain exactly one of url or transport')
+  }
+
+  if (hasTransport) {
+    const transport = redis.transport
+    if (
+      !transport ||
+      typeof transport !== 'object' ||
+      typeof transport.time !== 'function' ||
+      typeof transport.get !== 'function' ||
+      typeof transport.getMany !== 'function' ||
+      typeof transport.set !== 'function' ||
+      typeof transport.delete !== 'function'
+    ) {
+      throw new TypeError(
+        'redis.transport must implement time, get, getMany, set, and delete',
+      )
+    }
+    // Freeze only Cachekind's wrapper. The application-owned transport may
+    // maintain connection state and must not be frozen or otherwise mutated.
+    return Object.freeze({ transport })
+  }
+
+  if (typeof redis.url !== 'string' || redis.url.length === 0) {
+    throw new TypeError('redis.url must be a non-empty string')
   }
 
   let parsed: URL

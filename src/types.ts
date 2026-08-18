@@ -7,7 +7,49 @@ export type MaybePromise<T> = T | Promise<T>
 export interface RedisConnectionOptions {
   /** A standard redis:// or rediss:// TCP connection URL. */
   url: string
+  transport?: never
 }
+
+export interface RedisTransportSetOptions {
+  /** The transport must apply this finite TTL as part of the write. */
+  ttlSeconds: number
+}
+
+/**
+ * The minimal binary-safe Redis boundary used by Cachekind.
+ *
+ * Injected transports are application-owned: Cachekind never connects,
+ * reconfigures, or closes them.
+ */
+export interface CachekindRedisTransport {
+  /** Return Redis server time as integer microseconds since the Unix epoch. */
+  time(): Promise<number>
+  get(key: string): Promise<Uint8Array | null>
+  /**
+   * Return results in key order. This operation must work when the keys are in
+   * different Redis Cluster hash slots; pipeline independent GET commands
+   * rather than requiring MGET.
+   */
+  getMany(keys: readonly string[]): Promise<readonly (Uint8Array | null)[]>
+  /** Store a binary value and apply the supplied TTL atomically. */
+  set(
+    key: string,
+    value: Uint8Array,
+    options: RedisTransportSetOptions,
+  ): Promise<void>
+  delete(key: string): Promise<void>
+}
+
+export interface RedisTransportOptions {
+  /** A ready, application-owned transport. */
+  transport: CachekindRedisTransport
+  url?: never
+}
+
+export type RedisOptions =
+  | false
+  | RedisConnectionOptions
+  | RedisTransportOptions
 
 export interface CachePolicy {
   enabled?: boolean
@@ -48,10 +90,13 @@ export type ErrorReporter = (
 ) => MaybePromise<void>
 
 export interface CachekindOptions {
-  /** `false` disables Cachekind without opening any Redis connections. */
-  redis: false | RedisConnectionOptions
+  /**
+   * `false` disables Cachekind, `{ url }` uses a Cachekind-owned client, and
+   * `{ transport }` reuses application-owned Redis infrastructure.
+   */
+  redis: RedisOptions
   namespace: string
-  /** Optional override. Runtime discovery from Next.js is implemented later. */
+  /** Optional override for the BUILD_ID discovered from Next.js at runtime. */
   buildId?: string | (() => MaybePromise<string>)
   policies?: Partial<Record<CacheKind, CachePolicy>>
   tagTtlSeconds?: number
@@ -76,7 +121,10 @@ export interface ResolvedResilienceOptions {
 }
 
 export interface ResolvedCachekindOptions {
-  redis: false | Readonly<RedisConnectionOptions>
+  redis:
+    | false
+    | Readonly<RedisConnectionOptions>
+    | Readonly<RedisTransportOptions>
   namespace: string
   buildId?: string | (() => MaybePromise<string>)
   policies: Readonly<Record<CacheKind, Readonly<ResolvedCachePolicy>>>

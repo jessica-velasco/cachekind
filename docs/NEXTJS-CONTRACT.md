@@ -1,6 +1,6 @@
 # Observed Next.js cache-handler contract
 
-These observations come from the production `build && start` probe in `examples/contract-probe`, pinned to Next.js 16.2.10. They are executable evidence for implementation work, not a substitute for rerunning the probe when upgrading Next.js.
+These observations come from the production `build && start` probe in `examples/contract-probe`, pinned to Next.js 16.3.1. They are executable evidence for implementation work, not a substitute for rerunning the probe when upgrading Next.js.
 
 ## Loading and lifecycle
 

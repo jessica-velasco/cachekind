@@ -1,8 +1,16 @@
 {
   "name": "cachekind",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.0",
   "description": "A resilient Redis cache handler for self-hosted Next.js",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jessica-velasco/cachekind.git"
+  },
+  "homepage": "https://github.com/jessica-velasco/cachekind#readme",
+  "bugs": {
+    "url": "https://github.com/jessica-velasco/cachekind/issues"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -10,12 +18,25 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./node-redis": {
+      "types": "./dist/node-redis.d.ts",
+      "require": "./dist/node-redis.js",
+      "default": "./dist/node-redis.js"
     }
   },
   "files": [
     "dist",
+    "docs/CACHE-SAFETY.md",
+    "docs/CONFIGURATION.md",
+    "docs/DEPLOYMENT.md",
+    "docs/MIGRATION.md",
+    "docs/OPERATIONS.md",
+    "docs/QUICKSTART.md",
+    "CHANGELOG.md",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "SECURITY.md"
   ],
   "workspaces": [
     "examples/*"
@@ -24,18 +45,22 @@
     "build": "tsc -p tsconfig.json",
     "build:probe": "npm run build --workspace @cachekind/contract-probe",
     "check": "npm run typecheck && npm test",
+    "test:redis": "npm run build && node --test test/redis-integration.test.cjs",
     "pack:check": "npm pack --dry-run",
     "prepack": "npm run build",
+    "prepublishOnly": "npm run verify:trust",
     "start:probe": "npm run start --workspace @cachekind/contract-probe",
     "test": "npm run build && node --test test/*.test.cjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
-    "verify:probe": "npm run build:probe && node scripts/verify-contract.mjs"
+    "verify:probe": "npm run build:probe && node scripts/verify-contract.mjs",
+    "verify:shared": "npm run build && node scripts/verify-shared-cache.mjs",
+    "verify:trust": "npm run check && npm run pack:check && npm run verify:probe"
   },
   "engines": {
     "node": ">=20.9.0"
   },
   "peerDependencies": {
-    "next": ">=16.2.0 <17"
+    "next": ">=16.3.1 <17"
   },
   "peerDependenciesMeta": {
     "next": {
@@ -57,9 +82,7 @@
     "elasticache",
     "valkey"
   ],
-  "overrides": {
-    "next": {
-      "postcss": "8.5.10"
-    }
+  "dependencies": {
+    "@redis/client": "6.1.0"
   }
 }

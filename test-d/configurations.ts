@@ -1,8 +1,13 @@
 import {
   createIncrementalCacheHandler,
+  type CachekindRedisTransport,
   type CachekindLogger,
   type ErrorReporter,
 } from '../src'
+import {
+  createNodeRedisTransport,
+  type NodeRedisClient,
+} from '../src/node-redis'
 
 // Minimal, explicitly disabled configuration used in build environments.
 createIncrementalCacheHandler({
@@ -15,6 +20,26 @@ createIncrementalCacheHandler({
   redis: { url: 'rediss://cache.example.com:6380' },
   namespace: 'marketing-site',
   buildId: () => 'deployment-sha',
+})
+
+declare const transport: CachekindRedisTransport
+declare const nodeRedisClient: NodeRedisClient
+
+// Reuse application-owned Redis infrastructure through a client adapter.
+createIncrementalCacheHandler({
+  redis: { transport },
+  namespace: 'marketing-site',
+})
+
+createIncrementalCacheHandler({
+  redis: { transport: createNodeRedisTransport(nodeRedisClient) },
+  namespace: 'node-redis-site',
+})
+
+createIncrementalCacheHandler({
+  // @ts-expect-error URL mode and injected mode are mutually exclusive.
+  redis: { url: 'redis://cache.internal:6379', transport },
+  namespace: 'invalid-ambiguous-configuration',
 })
 
 declare const logger: CachekindLogger
