@@ -83,6 +83,6 @@
     "valkey"
   ],
   "dependencies": {
-    "@redis/client": "6.1.0"
+    "@redis/client": "6.2.1"
   }
 }
