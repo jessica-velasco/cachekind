@@ -38,7 +38,7 @@ server.
 | Standalone output contains Cachekind and its Redis client | Shared-cache verifier artifact assertions |
 | Edge output excludes the Node Redis path | Edge entry test and production probe |
 | Supported Redis versions | Redis 7.2 and 7.4 CI matrix |
-| Supported Next.js 16.2 range | Next.js 16.2.0 and pinned-current CI matrix |
+| Supported Next.js version | Next.js 16.3.1 production compatibility job |
 | `rediss://` works with certificate verification | Redis 7.2 TLS CI job |
 
 The runtime library itself never scans Redis. Test-only key listing is used to

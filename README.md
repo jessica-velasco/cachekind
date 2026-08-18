@@ -7,7 +7,7 @@ instances while treating Redis as an optimization: unavailable, slow, or
 corrupt Redis data becomes a bounded cache miss instead of an application
 failure.
 
-The initial alpha targets Next.js 16.2, Redis 7.2 or newer, and the singular
+The initial alpha targets Next.js 16.3.1 or newer, Redis 7.2 or newer, and the singular
 `cacheHandler` contract for `FETCH`, `APP_PAGE`, and `APP_ROUTE`. Cache
 Components (`'use cache: remote'`) and image caching are not included yet.
 

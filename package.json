@@ -55,7 +55,7 @@
     "node": ">=20.9.0"
   },
   "peerDependencies": {
-    "next": ">=16.2.0 <17"
+    "next": ">=16.3.1 <17"
   },
   "peerDependenciesMeta": {
     "next": {
@@ -77,11 +77,6 @@
     "elasticache",
     "valkey"
   ],
-  "overrides": {
-    "next": {
-      "postcss": "8.5.10"
-    }
-  },
   "dependencies": {
     "@redis/client": "6.1.0"
   }

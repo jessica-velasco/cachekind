@@ -4,7 +4,8 @@
 
 ## Status
 
-- Phase 0 contract spike completed on July 20, 2026 against Next.js 16.2.10.
+- Phase 0 contract spike completed on July 20, 2026 and reverified against the
+  current minimum, Next.js 16.3.1.
 - Production build, Edge compilation, standalone tracing, page/route/fetch MISS→HIT, and tag invalidation→MISS are covered by an executable probe.
 - Phase 1 package/core scaffolding completed: typed public API, policy validation, key/TTL rules, binary codec, safe observability, disabled mode, packaging, and CI.
 - Phase 2 Redis adapter and resilience completed: client-neutral transport,
@@ -23,7 +24,7 @@
 ## Confirmed product decisions
 
 - Safe default: share `FETCH`; require explicit opt-in for `APP_PAGE` and `APP_ROUTE`.
-- Initial support floor: Next.js 16.2.
+- Initial support floor: Next.js 16.3.1.
 - Initial Redis support floor: Redis 7.2.
 - Initial Redis transport: standard TCP/TLS URLs. REST-only providers are deferred.
 - Project name, npm package, and repository slug: `cachekind`.
@@ -42,7 +43,7 @@ Success means a user can install the package, add a short handler file and Next.
 
 ## Current Next.js boundary
 
-Next.js 16.2 has two distinct cache extension points. We should share one Redis core while exposing separate adapters:
+Next.js 16.3.1 has two distinct cache extension points. We should share one Redis core while exposing separate adapters:
 
 1. `cacheHandler` (singular) handles the incremental/server cache: `FETCH`, `APP_PAGE`, `APP_ROUTE`, `PAGES`, and optionally `IMAGE`. Its stable public methods are `get`, `set`, `revalidateTag`, and `resetRequestCache`.
 2. `cacheHandlers` (plural) handles Cache Components such as `'use cache'` and `'use cache: remote'`. Its streamed entry contract uses `get`, `set`, `refreshTags`, `getExpiration`, and `updateTags`.
@@ -53,7 +54,7 @@ The first milestone targets the singular incremental cache handler. The Cache Co
 
 ### Included
 
-- Next.js 16.2 incremental cache contract for `FETCH`, `APP_PAGE`, and `APP_ROUTE`.
+- Next.js 16.3.1 incremental cache contract for `FETCH`, `APP_PAGE`, and `APP_ROUTE`.
 - Runtime enable/disable with zero Redis connections when disabled.
 - A constructor/factory API; the package never reads ambient environment variables itself.
 - Managed-Redis-safe behavior: no `CONFIG` commands, no keyspace notification dependency, no eviction-policy assumption, and a TTL on every package-owned key.
@@ -191,7 +192,7 @@ Prefer one package until there is evidence that separate packages improve instal
 
 ### Phase 0 — contract spike
 
-- Pin a Next.js 16.2 patch version in the example.
+- Pin the minimum supported Next.js patch version in the example.
 - Capture the real runtime shapes for every supported kind.
 - Verify standalone file tracing, edge compilation, `data: null`, lazy `BUILD_ID`, and development-mode behavior.
 - Write contract fixtures that can be rerun against future Next.js versions.
@@ -269,7 +270,7 @@ Status: **completed**. The suite now covers production MISS→HIT behavior,
 cross-instance tag and path invalidation, unavailable and paused Redis budgets,
 automatic recovery, corrupt-entry cleanup, oversized-write rejection, finite
 entry and tag TTLs, rolling-build isolation, and standalone dependency tracing.
-CI tests Redis 7.2 and 7.4, the minimum and pinned-current Next.js 16.2 patches,
+CI tests Redis 7.2 and 7.4 plus the minimum Next.js 16.3.1 patch,
 and a certificate-verified `rediss://` connection. See `docs/TRUST-SUITE.md`.
 
 ### Phase 5 — documentation and first release
@@ -304,7 +305,10 @@ In priority order, based on demand and measurements:
 2. **Default Redis client:** do a small implementation spike for URL convenience
    mode rather than making one library's assumptions part of the cache core or
    requiring consumers to adopt it.
-3. **Minimum Next.js version:** start at 16.2 because image and Cache Components contracts are actively changing; decide later whether a compatibility adapter for older releases is worth the maintenance.
+3. **Minimum Next.js version:** start at 16.3.1 because earlier 16.x patches
+   have known high-severity advisories and image and Cache Components contracts
+   are actively changing; decide later whether a compatibility adapter for
+   older releases is worth the maintenance.
 4. **Fallback meaning:** degraded Redis should be a miss, not an attempt to instantiate private Next.js filesystem classes.
 5. **Tag TTL:** choose a default long enough that an old cache entry can never outlive its tag invalidation marker. Enforce `tagTtl >= maximumEntryTtl` in configuration.
 6. **Entry encoding:** benchmark MessagePack/CBOR versus a tiny custom envelope, including Buffer and streamed-value needs.
@@ -314,7 +318,7 @@ In priority order, based on demand and measurements:
 Before scaffolding, we should agree on only three product choices:
 
 1. Is `FETCH`-only the safest default, with page/route sharing opt-in?
-2. Is Next.js 16.2+ an acceptable initial support floor?
+2. Is Next.js 16.3.1+ an acceptable initial support floor?
 3. Do we optimize first for standard TCP/TLS Redis URLs (ElastiCache, Azure Managed Redis, Redis Cloud, Upstash TCP) and defer REST-only Redis APIs?
 
 Once those are settled, Phase 0 is the first implementation task. It will give us executable evidence for the Next.js contract before we commit to the Redis schema or public API.

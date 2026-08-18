@@ -64,7 +64,7 @@ jobs:
   next-compatibility:
     strategy:
       matrix:
-        next: ["16.2.0", "16.2.10"]
+        next: ["16.3.1"]
     runs-on: ubuntu-latest
     services:
       redis:
