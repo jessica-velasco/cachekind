@@ -37,7 +37,6 @@ function withTimeout<T>(
       expired = true
       reject(new RedisOperationTimeoutError(timeoutMs))
     }, timeoutMs)
-    timer.unref?.()
   })
 
   // Promise.race installs handlers on both promises. If the Redis command
