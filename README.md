@@ -19,8 +19,9 @@ and verification under human direction and review. Changes are evaluated
 through explicit plans, source review, executable tests, and release gates.
 
 This is a process disclosure, not a guarantee that the software is correct,
-secure, or suitable for a particular deployment. See
-[Engineering process](./docs/ENGINEERING.md) for the practical meaning.
+secure, or suitable for a particular deployment. The repository's
+[engineering process](https://github.com/jessica-velasco/cachekind/blob/main/docs/ENGINEERING.md)
+explains the practical meaning.
 
 ## Why Cachekind
 
@@ -79,16 +80,21 @@ output.
 
 ## Documentation
 
+- [Five-minute quick start](./docs/QUICKSTART.md)
+- [Cache-safety guide](./docs/CACHE-SAFETY.md)
 - [Configuration reference](./docs/CONFIGURATION.md)
 - [Deployment and managed Redis](./docs/DEPLOYMENT.md)
 - [Operations and failure behavior](./docs/OPERATIONS.md)
 - [Migration guide](./docs/MIGRATION.md)
-- [Engineering process and AI disclosure](./docs/ENGINEERING.md)
-- [Trust suite](./docs/TRUST-SUITE.md)
-- [Next.js contract observations](./docs/NEXTJS-CONTRACT.md)
-- [Release process](./docs/RELEASING.md)
 
-## Development
+## Contributing
+
+Development, compatibility, and release material stays in the repository:
+[contribution guide](https://github.com/jessica-velasco/cachekind/blob/main/CONTRIBUTING.md),
+[trust suite](https://github.com/jessica-velasco/cachekind/blob/main/docs/TRUST-SUITE.md),
+[Next.js contract notes](https://github.com/jessica-velasco/cachekind/blob/main/docs/NEXTJS-CONTRACT.md),
+[release process](https://github.com/jessica-velasco/cachekind/blob/main/docs/RELEASING.md),
+and [roadmap](https://github.com/jessica-velasco/cachekind/blob/main/ROADMAP.md).
 
 ```sh
 npm install

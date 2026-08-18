@@ -27,7 +27,12 @@
   },
   "files": [
     "dist",
-    "docs",
+    "docs/CACHE-SAFETY.md",
+    "docs/CONFIGURATION.md",
+    "docs/DEPLOYMENT.md",
+    "docs/MIGRATION.md",
+    "docs/OPERATIONS.md",
+    "docs/QUICKSTART.md",
     "CHANGELOG.md",
     "LICENSE",
     "README.md",

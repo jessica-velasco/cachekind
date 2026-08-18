@@ -21,13 +21,16 @@ validation are intentionally separate from implementation work.
   provenance, and files.
 - Configure npm trusted publishing for repository
   `jessica-velasco/cachekind`, workflow `release.yml`, environment `npm`, with
-  publish permission. Then remove and revoke the bootstrap token.
+  publish permission. Then remove and revoke the bootstrap token, remove the
+  `NODE_AUTH_TOKEN` environment variable from the workflow, and keep
+  `id-token: write` for trusted publishing and provenance.
 
 The workflow runs only when manually dispatched from a `v*` tag and publishes
 with the `alpha` distribution tag. It must not publish an alpha as `latest`. The
 first run needs `NPM_TOKEN` configured for the `npm` GitHub environment and
-exposed to the publish step as `NODE_AUTH_TOKEN`; after trusted publishing is
-configured, remove token use and rely on OIDC.
+exposed to the publish step as `NODE_AUTH_TOKEN`. The workflow also needs
+`id-token: write` to generate npm provenance. After trusted publishing is
+configured, remove token use and keep the OIDC permission.
 
 ## Real deployment validation
 
