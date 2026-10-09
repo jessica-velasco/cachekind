@@ -13,20 +13,21 @@ validation are intentionally separate from implementation work.
 - Run the full CI matrix on the exact commit.
 - Review `npm pack --dry-run`; cached values, credentials, fixtures, and build
   secrets must not appear in the tarball.
-- Review the public API, README, changelog, license, security policy, and
-  package metadata.
+- Review the public API, README, changelog, license, and package metadata.
 - Create and push the signed `v0.1.0-alpha.0` tag.
 - Manually dispatch the `Publish alpha` workflow from that tag.
 - Confirm `npm view cachekind@alpha` reports the expected version, dependencies,
   provenance, and files.
 - Configure npm trusted publishing for repository
   `jessica-velasco/cachekind`, workflow `release.yml`, environment `npm`, with
-  publish permission. Then remove and revoke the bootstrap token, remove the
-  `NODE_AUTH_TOKEN` environment variable from the workflow, and keep
-  `id-token: write` for trusted publishing and provenance.
+  the **Allow npm publish** permission. Then remove and revoke the bootstrap
+  token, remove the `NODE_AUTH_TOKEN` environment variable from the workflow,
+  and keep `id-token: write` for trusted publishing and provenance.
 
 The workflow runs only when manually dispatched from a `v*` tag and publishes
 with the `alpha` distribution tag. It must not publish an alpha as `latest`. The
+package's `prepublishOnly` gate also refuses publication unless npm receives an
+explicit `--tag alpha`; do not bypass lifecycle scripts when publishing. The
 first run needs `NPM_TOKEN` configured for the `npm` GitHub environment and
 exposed to the publish step as `NODE_AUTH_TOKEN`. The workflow also needs
 `id-token: write` to generate npm provenance. After trusted publishing is
@@ -67,6 +68,5 @@ When the project is ready for `1.0.0`:
 2. Run the complete CI and deployment smoke test again.
 3. Tag `v1.0.0`.
 4. Publish with the `latest` distribution tag using a reviewed release workflow.
-5. Update the security policy's supported-version table.
 
 Never reuse or overwrite a published npm version.

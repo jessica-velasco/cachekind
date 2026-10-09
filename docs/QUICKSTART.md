@@ -1,7 +1,7 @@
 # Five-minute quick start
 
 Cachekind shares the Next.js incremental server cache between two or more
-self-hosted Node.js instances. It targets Next.js 16.3.1 or newer and Redis 7.2 or newer.
+self-hosted Node.js instances. It targets Next.js 16.3.8 or newer and Redis 7.2 or newer.
 It does not implement Cache Components or `'use cache: remote'`.
 
 ## 1. Install
