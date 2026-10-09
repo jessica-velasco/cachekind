@@ -2,7 +2,7 @@
 
 Cachekind is prepared for its first `0.1.0-alpha.0` release. The incremental
 cache handler, Redis transport, resilience controls, documentation, and
-compatibility suite are implemented for Next.js 16.3.1+ and Redis 7.2+.
+compatibility suite are implemented for Next.js 16.3.8+ and Redis 7.2+.
 
 ## Before broader adoption
 

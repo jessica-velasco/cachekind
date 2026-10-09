@@ -7,7 +7,11 @@ instances while treating Redis as an optimization: unavailable, slow, or
 corrupt Redis data becomes a bounded cache miss instead of an application
 failure.
 
-The initial alpha targets Next.js 16.3.1 or newer, Redis 7.2 or newer, and the singular
+> **Status: alpha preview.** Cachekind has an automated trust suite, but it has
+> not yet been validated in a representative production deployment. Expect API
+> changes and do not treat this release as production-ready.
+
+The initial alpha targets Next.js 16.3.8 or newer, Redis 7.2 or newer, and the singular
 `cacheHandler` contract for `FETCH`, `APP_PAGE`, and `APP_ROUTE`. Cache
 Components (`'use cache: remote'`) and image caching are not included yet.
 
@@ -87,10 +91,9 @@ output.
 - [Operations and failure behavior](./docs/OPERATIONS.md)
 - [Migration guide](./docs/MIGRATION.md)
 
-## Contributing
+## Development
 
 Development, compatibility, and release material stays in the repository:
-[contribution guide](https://github.com/jessica-velasco/cachekind/blob/main/CONTRIBUTING.md),
 [trust suite](https://github.com/jessica-velasco/cachekind/blob/main/docs/TRUST-SUITE.md),
 [Next.js contract notes](https://github.com/jessica-velasco/cachekind/blob/main/docs/NEXTJS-CONTRACT.md),
 [release process](https://github.com/jessica-velasco/cachekind/blob/main/docs/RELEASING.md),
@@ -115,4 +118,4 @@ Next.js servers, and checks shared page and route hits plus cross-instance tag
 and path invalidation.
 
 Cachekind is licensed under the [MIT License](./LICENSE). Security issues should
-be reported according to [SECURITY.md](./SECURITY.md).
+not be reported in public issues.

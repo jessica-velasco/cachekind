@@ -35,8 +35,7 @@
     "docs/QUICKSTART.md",
     "CHANGELOG.md",
     "LICENSE",
-    "README.md",
-    "SECURITY.md"
+    "README.md"
   ],
   "workspaces": [
     "examples/*"
@@ -48,11 +47,12 @@
     "test:redis": "npm run build && node --test test/redis-integration.test.cjs",
     "pack:check": "npm pack --dry-run",
     "prepack": "npm run build",
-    "prepublishOnly": "npm run verify:trust",
+    "prepublishOnly": "npm run verify:publish-tag && npm run verify:trust",
     "start:probe": "npm run start --workspace @cachekind/contract-probe",
     "test": "npm run build && node --test test/*.test.cjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "verify:probe": "npm run build:probe && node scripts/verify-contract.mjs",
+    "verify:publish-tag": "node scripts/verify-publish-tag.mjs",
     "verify:shared": "npm run build && node scripts/verify-shared-cache.mjs",
     "verify:trust": "npm run check && npm run pack:check && npm run verify:probe"
   },
@@ -60,7 +60,7 @@
     "node": ">=20.9.0"
   },
   "peerDependencies": {
-    "next": ">=16.3.1 <17"
+    "next": ">=16.3.8 <17"
   },
   "peerDependenciesMeta": {
     "next": {

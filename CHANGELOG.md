@@ -4,11 +4,11 @@ All notable changes to Cachekind are documented here. The project follows
 [Semantic Versioning](https://semver.org/) and the
 [Keep a Changelog](https://keepachangelog.com/) structure.
 
-## [0.1.0-alpha.0] - 2026-08-18
+## [0.1.0-alpha.0] - 2026-10-09
 
 ### Added
 
-- Next.js 16.3.1 incremental cache support for `FETCH`, `APP_PAGE`, and
+- Next.js 16.3.8 incremental cache support for `FETCH`, `APP_PAGE`, and
   `APP_ROUTE`.
 - Safe FETCH-only defaults with explicit page and route opt-in.
 - Binary-safe, TTL-bound Redis entries and timestamp-based tag invalidation.
