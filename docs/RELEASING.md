@@ -26,17 +26,17 @@ validation are intentionally separate from implementation work.
   and files.
 - Configure npm trusted publishing for repository
   `jessica-velasco/cachekind`, workflow `release.yml`, environment `npm`, with
-  the **Allow npm publish** permission. Then remove and revoke the bootstrap
-  token, remove the `NODE_AUTH_TOKEN` environment variable from the workflow,
-  and add `id-token: write` for trusted publishing.
+  the **Allow npm publish** and **Allow npm dist-tag** permissions. Then remove
+  and revoke the bootstrap token. The workflow uses `id-token: write` for
+  short-lived OIDC authentication and does not expose `NODE_AUTH_TOKEN`.
 
 The workflow accepts only a `v*` release tag, verifies that its commit and
 package version match, and publishes with the `alpha` distribution tag. It must
 not publish an alpha as `latest`. The package's `prepublishOnly` gate also
 refuses publication unless npm receives an explicit `--tag alpha`; do not
-bypass lifecycle scripts when publishing. The first run needs `NPM_TOKEN`
-configured for the `npm` GitHub environment and exposed to the publish step as
-`NODE_AUTH_TOKEN`.
+bypass lifecycle scripts when publishing. Bootstrap publication may need a
+short-lived `NPM_TOKEN` before the package exists. Once the package exists,
+configure trusted publishing and remove the bootstrap token.
 
 This repository is private, so npm cannot verify GitHub Actions provenance for
 it. The bootstrap publish therefore passes `--provenance=false` to override the

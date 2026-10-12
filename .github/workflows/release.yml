@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -43,8 +44,6 @@ jobs:
       - run: npm install --global npm@11.18.0
       - run: npm ci
       - run: npm publish --tag alpha --access public --provenance=false
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   remove-latest:
     if: inputs.operation == 'remove-latest'
@@ -57,5 +56,3 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm install --global npm@11.18.0
       - run: npm dist-tag rm cachekind latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
