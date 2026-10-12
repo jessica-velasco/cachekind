@@ -35,8 +35,9 @@ configured for the `npm` GitHub environment and exposed to the publish step as
 `NODE_AUTH_TOKEN`.
 
 This repository is private, so npm cannot verify GitHub Actions provenance for
-it. The bootstrap publish therefore omits `--provenance`. If the repository is
-made public later, provenance can be restored alongside trusted publishing.
+it. The bootstrap publish therefore passes `--provenance=false` to override the
+tagged package's `publishConfig.provenance` setting. If the repository is made
+public later, provenance can be restored alongside trusted publishing.
 
 ## Real deployment validation
 
