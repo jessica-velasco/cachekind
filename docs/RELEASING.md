@@ -15,23 +15,28 @@ validation are intentionally separate from implementation work.
   secrets must not appear in the tarball.
 - Review the public API, README, changelog, license, and package metadata.
 - Create and push the signed `v0.1.0-alpha.0` tag.
-- Manually dispatch the `Publish alpha` workflow from that tag.
+- Manually dispatch the `Publish alpha` workflow from `main`, entering that tag
+  as the `release_tag` input. The workflow verifies that the checked-out commit
+  and package version match the requested tag before publishing.
 - Confirm `npm view cachekind@alpha` reports the expected version, dependencies,
-  provenance, and files.
+  and files.
 - Configure npm trusted publishing for repository
   `jessica-velasco/cachekind`, workflow `release.yml`, environment `npm`, with
   the **Allow npm publish** permission. Then remove and revoke the bootstrap
   token, remove the `NODE_AUTH_TOKEN` environment variable from the workflow,
-  and keep `id-token: write` for trusted publishing and provenance.
+  and add `id-token: write` for trusted publishing.
 
-The workflow runs only when manually dispatched from a `v*` tag and publishes
-with the `alpha` distribution tag. It must not publish an alpha as `latest`. The
-package's `prepublishOnly` gate also refuses publication unless npm receives an
-explicit `--tag alpha`; do not bypass lifecycle scripts when publishing. The
-first run needs `NPM_TOKEN` configured for the `npm` GitHub environment and
-exposed to the publish step as `NODE_AUTH_TOKEN`. The workflow also needs
-`id-token: write` to generate npm provenance. After trusted publishing is
-configured, remove token use and keep the OIDC permission.
+The workflow accepts only a `v*` release tag, verifies that its commit and
+package version match, and publishes with the `alpha` distribution tag. It must
+not publish an alpha as `latest`. The package's `prepublishOnly` gate also
+refuses publication unless npm receives an explicit `--tag alpha`; do not
+bypass lifecycle scripts when publishing. The first run needs `NPM_TOKEN`
+configured for the `npm` GitHub environment and exposed to the publish step as
+`NODE_AUTH_TOKEN`.
+
+This repository is private, so npm cannot verify GitHub Actions provenance for
+it. The bootstrap publish therefore omits `--provenance`. If the repository is
+made public later, provenance can be restored alongside trusted publishing.
 
 ## Real deployment validation
 
