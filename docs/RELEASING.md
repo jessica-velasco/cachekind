@@ -16,8 +16,12 @@ validation are intentionally separate from implementation work.
 - Review the public API, README, changelog, license, and package metadata.
 - Create and push the signed `v0.1.0-alpha.0` tag.
 - Manually dispatch the `Publish alpha` workflow from `main`, entering that tag
-  as the `release_tag` input. The workflow verifies that the checked-out commit
-  and package version match the requested tag before publishing.
+  as the `release_tag` input and leaving `operation` set to `publish-alpha`.
+  The workflow verifies that the checked-out commit and package version match
+  the requested tag before publishing.
+- On the first package publish, check whether npm also created `latest`. If it
+  did, immediately rerun the workflow with `operation` set to `remove-latest`.
+  This removes only the distribution tag; it does not delete the alpha version.
 - Confirm `npm view cachekind@alpha` reports the expected version, dependencies,
   and files.
 - Configure npm trusted publishing for repository

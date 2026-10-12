@@ -7,13 +7,21 @@ on:
         description: Signed version tag to publish
         required: true
         default: v0.1.0-alpha.0
+      operation:
+        description: Release operation
+        required: true
+        type: choice
+        default: publish-alpha
+        options:
+          - publish-alpha
+          - remove-latest
 
 permissions:
   contents: read
 
 jobs:
   publish:
-    if: startsWith(inputs.release_tag, 'v')
+    if: inputs.operation == 'publish-alpha' && startsWith(inputs.release_tag, 'v')
     runs-on: ubuntu-latest
     environment: npm
     steps:
@@ -35,5 +43,19 @@ jobs:
       - run: npm install --global npm@11.18.0
       - run: npm ci
       - run: npm publish --tag alpha --access public --provenance=false
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  remove-latest:
+    if: inputs.operation == 'remove-latest'
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm install --global npm@11.18.0
+      - run: npm dist-tag rm cachekind latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
