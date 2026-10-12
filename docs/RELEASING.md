@@ -30,7 +30,9 @@ validation are intentionally separate from implementation work.
   and revoke the bootstrap token. The workflow uses `id-token: write` for
   short-lived OIDC authentication and does not expose `NODE_AUTH_TOKEN`. Keep
   the workflow on npm 12.2.0 or newer because older clients cannot use trusted
-  publishing for dist-tag operations.
+  publishing for dist-tag operations. Do not set `registry-url` in
+  `actions/setup-node`; that token-oriented configuration creates a placeholder
+  `NODE_AUTH_TOKEN` that takes precedence over OIDC.
 
 The workflow accepts only a `v*` release tag, verifies that its commit and
 package version match, and publishes with the `alpha` distribution tag. It must
