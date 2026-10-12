@@ -28,7 +28,9 @@ validation are intentionally separate from implementation work.
   `jessica-velasco/cachekind`, workflow `release.yml`, environment `npm`, with
   the **Allow npm publish** and **Allow npm dist-tag** permissions. Then remove
   and revoke the bootstrap token. The workflow uses `id-token: write` for
-  short-lived OIDC authentication and does not expose `NODE_AUTH_TOKEN`.
+  short-lived OIDC authentication and does not expose `NODE_AUTH_TOKEN`. Keep
+  the workflow on npm 12.2.0 or newer because older clients cannot use trusted
+  publishing for dist-tag operations.
 
 The workflow accepts only a `v*` release tag, verifies that its commit and
 package version match, and publishes with the `alpha` distribution tag. It must

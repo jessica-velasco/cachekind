@@ -41,7 +41,7 @@ jobs:
           node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
-      - run: npm install --global npm@11.18.0
+      - run: npm install --global npm@12.2.0
       - run: npm ci
       - run: npm publish --tag alpha --access public --provenance=false
 
@@ -54,5 +54,5 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      - run: npm install --global npm@11.18.0
+      - run: npm install --global npm@12.2.0
       - run: npm dist-tag rm cachekind latest
